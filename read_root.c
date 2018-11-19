@@ -364,32 +364,26 @@ void cat_compuesto(FILE *in, Fat16BootSector *bs, char *name, char *content, cha
         sprintf(DE + j, "%x", str[5] & 0xff);
     }
 
-    Fat16Entry fentry;
-    //strncpy(&fentry, DE, sizeof(fentry));
-    //puts(&fentry);
-    unsigned char filename[8];
-    for (int h = 0, k = 0; h < 8; h++)
+    // tryhard conversíon hex to ascii
+    char output_dir[(strlen(DE) / 2) + 1];
+    char caracter;
+    char *dir;
+    dir = (char *)malloc(strlen(&DE[0]));
+    strcpy(dir, &DE[0]);
+
+    for (int h = 0, k = 0; h < strlen(DE); h++, k += 2)
     {
-        sprintf(filename + h, "%x", DE[h]);
+        char *fact = (char *)malloc(2);
+        sprintf(fact, "%c", dir[k]);
+        sprintf(fact+1, "%c", dir[k+1]);
+
+        sscanf(fact, "%x", &caracter);
+        sprintf(output_dir + h, "%c", caracter);
     }
-    sprintf(fentry.filename, "%x", filename );
+    fwrite(&output_dir, sizeof(output_dir), 1, in);
 
-    puts(fentry.filename);
-
-        //fwrite(&fentry, sizeof(fentry), 1, in);
-
-        //printf("%s", &DE[0]);
-
-        //puts(&fentry);
-
-        //fwrite(final_dir, sizeof(final_dir), 1, in);
-
-        // Escribir en imagen
-
-        //fwrite(final_dir, sizeof(final_dir), 1, in);
-
-        // Coversi[on del contenido a Hex]  00050200
-        char hcontent[strlen(content) * 2];
+    // Coversi[on del contenido a Hex] 
+    char hcontent[strlen(content) * 2];
     for (int h = 0, j = 0; h < strlen(content); h++, j += 2)
     {
         sprintf(hcontent + j, "%02x", content[h] & 0xff);
@@ -398,12 +392,12 @@ void cat_compuesto(FILE *in, Fat16BootSector *bs, char *name, char *content, cha
     // Conversion de direccion inicial  Fat
     char start_fat[4];
     sprintf(start_fat, "%x", lastDir & 0xffff);
-    puts(start_fat);
 
     // Conversion de tama;o contenido
     char size_content[8];
     sprintf(size_content, "%x", strlen(content) & 0xffffffff);
-    puts(size_content);
+
+    
 }
 
 int main()
@@ -449,7 +443,7 @@ int main()
     fseek(in, (bs.reserved_sectors - 1 + bs.fat_size_sectors) * bs.sector_size, SEEK_CUR); // Saltar la primera fat vacia
     int current = ftell(in);                                                               // Direccion guardada
 
-    cat_compuesto(in, &bs, "CJTest  ", "Esta es una prueba para el cat del archivo.", "cjt"); // Cat>[file].[ext] [content]
+    cat_compuesto(in, &bs, "Diego  ", "Esta es una prueba para el cat del archivo.", "cjt"); // Cat>[file].[ext] [content]
 
     fseek(in, current, SEEK_SET);                                // Se mueve de regreso a la direcci[on guardada
     fseek(in, (bs.fat_size_sectors) * bs.sector_size, SEEK_CUR); // Saltar la segunda Fat
